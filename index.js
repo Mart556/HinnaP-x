@@ -83,6 +83,10 @@ cron.schedule(
 );
 
 app.get("/api/prices/30d", async (req, res) => {
+	const conn = await db.getConnection();
+
+	console.log("Received request for 30 day data");
+
 	try {
 		const days = 30;
 		const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -104,7 +108,28 @@ app.get("/api/prices/30d", async (req, res) => {
 	} catch (err) {
 		console.error("Failed to fetch 30 day data:", err);
 		res.status(500).json({ error: "Failed to fetch 30 day data" });
+	} finally {
+		conn.release();
 	}
+});
+
+app.get("/", (req, res) => {
+	res.send("HinnaPõx API is running");
+});
+
+app.get("/api/manual", (req, res) => {
+	fetchData()
+		.then((success) => {
+			if (success) {
+				res.json({ status: "Data fetched and stored successfully" });
+			} else {
+				res.status(500).json({ error: "Data fetch failed" });
+			}
+		})
+		.catch((err) => {
+			console.error("Manual fetch failed:", err);
+			res.status(500).json({ error: "Data fetch failed" });
+		});
 });
 
 app.listen(process.env.PORT, process.env.HOST, () => {
