@@ -2,13 +2,13 @@ import express from "express";
 import dotenv from "dotenv";
 import db from "./utils/db.js";
 
-const conn = await db.getConnection();
-
 const app = express();
 
 dotenv.config();
 
 const fetchData = async () => {
+	const conn = await db.getConnection();
+
 	try {
 		const [gasRes, elecRes] = await Promise.all([
 			fetch("https://www.err.ee/api/gasPriceData/get"),
@@ -61,6 +61,8 @@ const fetchData = async () => {
 	} catch (err) {
 		console.error("fetchData failed:", err);
 		return false;
+	} finally {
+		conn.release();
 	}
 };
 
